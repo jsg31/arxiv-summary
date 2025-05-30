@@ -3,13 +3,11 @@ import os
 from dotenv import load_dotenv
 
 """
-This script orchestrates a team of AI agents to fetch, rank, and report on ArXiv papers.
-It utilizes the CrewAI framework to define agents with specific roles and tasks.
-The primary workflow involves:
-1. Fetching papers from ArXiv for a specified date and set of categories using `FetchArxivPapersTool`.
-2. A `Researcher` agent analyzes these papers and identifies the top 10.
-3. A `Frontend Engineer` agent takes the researcher's findings and generates an HTML report.
-The script requires environment variables for API keys and model configurations (e.g., OpenAI).
+This script uses crewAI to define a multi-agent system for fetching,
+researching, and reporting on ArXiv papers for a specified date.
+It leverages a Gemini model for the AI agents' capabilities.
+Users need to set the GEMINI_API_KEY environment variable.
+The final output is an HTML report of the top AI research papers.
 """
 
 # Load environment variables from .env file
@@ -26,10 +24,14 @@ import arxiv
 import time
 import datetime
 
+# Defines the input schema for the Arxiv paper fetching tool.
+# Ensures the target_date is provided in the correct format.
 class FetchArxivPapersInput(BaseModel):
     """Input schema for FetchArxivPapersTool."""
     target_date: datetime.date = Field(..., description="The specific date for which to fetch ArXiv papers. YYYY-MM-DD format.")
 
+# Defines a custom crewAI tool to fetch papers from ArXiv
+# based on specified categories and a target submission date.
 class FetchArxivPapersTool(BaseTool):
     """
     A tool to fetch research papers from ArXiv based on specified categories and a target submission date.
@@ -54,23 +56,19 @@ class FetchArxivPapersTool(BaseTool):
             List[dict]: A list of dictionaries, where each dictionary contains details of a fetched paper
                         (title, authors, summary, published date, URL).
         """
-        # List of AI-related categories on ArXiv.
-        # To customize, add or remove category codes from this list.
-        # Common AI categories include:
-        # "cs.AI" (Artificial Intelligence),
-        # "cs.LG" (Machine Learning),
-        # "cs.CV" (Computer Vision and Pattern Recognition),
-        # "cs.CL" (Computation and Language),
-        # "cs.NE" (Neural and Evolutionary Computing),
-        # "cs.RO" (Robotics),
-        # "stat.ML" (Statistics - Machine Learning)
+        # List of ArXiv categories to search for papers.
+        # Example categories: "cs.AI", "cs.LG", "cs.CV", "cs.CL", "cs.MA", "cs.RO"
+        # Customize this list based on the desired research areas.
         AI_CATEGORIES = ["cs.CL"] # Example: focusing on Computation and Language
 
         # Define the date range for the target date (from 00:00:00 to 23:59:59)
         start_date = target_date.strftime('%Y%m%d%H%M')
         end_date = (target_date + datetime.timedelta(days=1)).strftime('%Y%m%d%H%M')
 
-        # Initialize the ArXiv client
+        # Initialize the ArXiv client with pagination and delay settings
+        # to respect ArXiv's API rate limits.
+        # page_size: Number of results to fetch per request.
+        # delay_seconds: Time to wait between requests.
         client = arxiv.Client(
             page_size=100,  # Number of results to fetch per page from the ArXiv API.
             delay_seconds=3  # Time in seconds to wait between consecutive requests to the ArXiv API to respect rate limits.
@@ -115,7 +113,8 @@ arxiv_search_tool = FetchArxivPapersTool()
 gemini_llm = LLM(model="gemini/gemini-pro")
 
 # Agent 1: ArXiv Researcher
-
+# This agent is responsible for finding and ranking top research papers
+# from the results provided by the FetchArxivPapersTool.
 researcher = Agent(
     role = "Senior AI Researcher", # The role of the agent
     goal = "Identify and rank the top 10 most significant ArXiv papers published on {date} in specified AI categories. "
@@ -129,8 +128,8 @@ researcher = Agent(
 )
 
 # Agent 2: Frontend Engineer
-
-# Defines the Frontend Engineer agent responsible for creating an HTML report.
+# This agent takes the researched papers and compiles them into an
+# HTML report.
 frontend_engineer = Agent(
     role = "Senior Frontend Engineer specializing in AI Application Interfaces", # The role of the agent
     goal = "Create a well-structured and visually appealing HTML report summarizing the top AI research papers identified by the researcher.", # The primary objective of the agent
@@ -142,8 +141,8 @@ frontend_engineer = Agent(
 )
 
 # Task for ArXiv Researcher
-
-# Defines the research task to be performed by the Researcher agent.
+# Defines the specific task for the researcher agent, including the
+# expected input (date) and the desired output format.
 research_task = Task(
     description = ("Based on the papers fetched from ArXiv for {date}, identify the top 10 most impactful research papers. "
                    "Consider factors like novelty, methodology, potential applications, and relevance to current AI trends. "
@@ -161,8 +160,8 @@ research_task = Task(
 )
 
 # Task for Frontend Engineer
-
-# Defines the reporting task to be performed by the Frontend Engineer agent.
+# Defines the task for the frontend engineer to create an HTML report
+# based on the research_task's output. Specifies the output file.
 reporting_task = Task(
     description = ("Take the curated list of top 10 ArXiv papers and compile them into a user-friendly HTML report. "
                    "The report should be well-organized, easy to read, and visually appealing. "
@@ -181,6 +180,8 @@ reporting_task = Task(
     human_input = True, # Indicates that this task may require human input or validation (e.g., reviewing the generated HTML)
 )
 
+# Defines the crew, bringing together the agents and their tasks.
+# The process will be sequential by default if not specified otherwise.
 # Note: 'from crewai import Crew' is already handled by the import 'from crewai import Agent, Task, Crew, LLM'
 arxiv_research_crew = Crew(
     agents = [researcher, frontend_engineer],
@@ -188,10 +189,9 @@ arxiv_research_crew = Crew(
     verbose = True,
 )
 
-# Defines the input parameters for the crew.
-# This dictionary allows easy modification of key inputs, such as the target date for fetching papers.
-# To change the target date, modify the value associated with the "date" key.
-# Ensure the date is in "YYYY-MM-DD" format.
+# Input parameters for the crew kickoff.
+# The 'date' will be passed to the tasks that require it.
+# Modify 'YYYY-MM-DD' to the desired date for fetching papers.
 crew_inputs = {
     "date" : "2025-03-12" # Example target date. Change this to fetch papers for a different date.
 }

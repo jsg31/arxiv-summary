@@ -2,42 +2,42 @@
 
 ## Project Description
 
-This project automates the process of fetching, ranking, and reporting on ArXiv papers. It leverages AI agents, powered by Google's Gemini model (e.g., `gemini-pro` via CrewAI's LiteLLM integration), to identify relevant and impactful research papers based on user-defined topics. The system fetches recent papers from ArXiv, ranks them according to their potential impact and relevance, and generates a comprehensive HTML report summarizing the findings.
+This project automates the process of discovering and summarizing recent AI research papers from ArXiv. It uses a team of AI agents built with CrewAI to handle fetching papers, analyzing their content, and generating a concise HTML report of the top findings for a given day. The AI agents are powered by Google's Gemini model (e.g., `gemini-pro` via CrewAI's LiteLLM integration). The system fetches recent papers from ArXiv, ranks them according to their potential impact and relevance, and generates a comprehensive HTML report summarizing the findings.
 
-## Key Components
+### Key Components
+*   **`FetchArxivPapersTool`**: A custom CrewAI tool that connects to the ArXiv API to search for and retrieve papers based on selected categories (e.g., `cs.CL`, `cs.AI`) and a specific submission date.
+*   **Researcher Agent**: An AI agent responsible for sifting through the fetched papers, evaluating their relevance and significance based on titles and abstracts, and selecting the top 10 papers.
+*   **Frontend Engineer Agent**: An AI agent that takes the curated list of papers from the Researcher and formats them into a user-friendly HTML report.
 
-The project is built around a set of specialized AI agents and tools:
-
-*   **`FetchArxivPapersTool`**: This tool is responsible for interacting with the ArXiv API. It fetches the latest papers based on specified search queries or categories.
-*   **`Researcher` Agent**: This agent takes the list of papers fetched by `FetchArxivPapersTool` and analyzes them. It reads the abstracts and sometimes the full text to understand the paper's contribution, methodology, and potential impact. It then ranks the papers based on relevance to the user's research interests and overall significance.
-*   **`Frontend Engineer` Agent**: This agent takes the ranked list of papers and the researcher's analysis to generate a user-friendly HTML report. The report typically includes summaries of the top papers, links to the original ArXiv entries, and any other pertinent information.
+### Workflow
+1.  **Input**: The script takes a target date as input (configurable in `app.py`).
+2.  **Fetching**: The `FetchArxivPapersTool` retrieves all papers from the specified ArXiv categories submitted on that date.
+3.  **Research & Ranking**: The Researcher agent analyzes these papers and compiles a ranked list of the top 10.
+4.  **Report Generation**: The Frontend Engineer agent generates an HTML file (`ai_research_report.html`) containing the title, authors, a short summary, and a link for each of the top papers.
 
 ## Setup Instructions
 
-To set up and run this project, you'll need to install the following dependencies:
-
+To get started, clone the repository and install the required Python packages:
 ```bash
-pip install crewai arxiv python-dotenv
+git clone <repository-url> # Replace <repository-url> with the actual URL
+cd <repository-directory> # Replace <repository-directory> with the project's folder name
+pip install -r requirements.txt
 ```
 
-These packages provide the core functionalities for the AI agents (`crewai`), ArXiv API interaction (`arxiv`), and environment variable management (`python-dotenv`). CrewAI uses LiteLLM to connect to various LLMs, including Google Gemini. Ensure you have the necessary API access and keys for the LLM you intend to use.
+You will also need to set up your environment variables as described below.
 
-## How to Run the Script
+The `requirements.txt` file is the primary way to install all necessary Python packages. Key dependencies include `crewai`, `arxiv`, `python-dotenv`, `litellm`, and `google-generativeai`.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd <repository-name>
-    ```
+These core packages provide the functionalities for:
+*   AI agent framework (`crewai`)
+*   ArXiv API interaction (`arxiv`)
+*   Environment variable management (`python-dotenv`)
+*   Interfacing with LLMs like Gemini (`litellm`, `google-generativeai`)
 
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *(Assuming you will add a `requirements.txt` file later or instruct the user to use the `pip install` command from the Setup Instructions)*
+CrewAI uses LiteLLM to connect to various LLMs, including Google Gemini.
 
-3.  **Set up Environment Variables:**
-    Create a `.env` file in the root directory of the project and add the following environment variables. This is crucial for the script to authenticate with the Google Gemini API.
+### Environment Variables
+Create a `.env` file in the root directory of the project and add the following environment variables. This is crucial for the script to authenticate with the Google Gemini API.
 
     ```env
     GEMINI_API_KEY="your_gemini_api_key_here"
@@ -47,8 +47,15 @@ These packages provide the core functionalities for the AI agents (`crewai`), Ar
     ```
     Replace `"your_gemini_api_key_here"` with your actual Google Cloud API key that has access to the Gemini API.
 
-4.  **Run the main script:**
-    *(The main script is `app.py`)*
+## Running the Script
+Once setup is complete:
+1.  Modify the `crew_inputs` dictionary in `app.py` if you want to change the target date for fetching papers.
+    ```python
+    crew_inputs = {
+        "date" : "YYYY-MM-DD" # Change to your desired date
+    }
+    ```
+2.  Run the main script:
     ```bash
     python app.py
     ```
