@@ -3,3 +3,5 @@ pydantic
 crewai
 arxiv
 openai
+litellm
+google-generativeai

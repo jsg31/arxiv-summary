@@ -2,7 +2,7 @@
 
 ## Project Description
 
-This project automates the process of fetching, ranking, and reporting on ArXiv papers. It leverages AI agents to identify relevant and impactful research papers based on user-defined topics. The system fetches recent papers from ArXiv, ranks them according to their potential impact and relevance, and generates a comprehensive HTML report summarizing the findings.
+This project automates the process of fetching, ranking, and reporting on ArXiv papers. It leverages AI agents, powered by Google's Gemini model (e.g., `gemini-pro` via CrewAI's LiteLLM integration), to identify relevant and impactful research papers based on user-defined topics. The system fetches recent papers from ArXiv, ranks them according to their potential impact and relevance, and generates a comprehensive HTML report summarizing the findings.
 
 ## Key Components
 
@@ -17,10 +17,10 @@ The project is built around a set of specialized AI agents and tools:
 To set up and run this project, you'll need to install the following dependencies:
 
 ```bash
-pip install crewai arxiv python-dotenv openai
+pip install crewai arxiv python-dotenv
 ```
 
-These packages provide the core functionalities for the AI agents (`crewai`), ArXiv API interaction (`arxiv`), environment variable management (`python-dotenv`), and accessing OpenAI models (`openai`) if you choose to use them as your backend.
+These packages provide the core functionalities for the AI agents (`crewai`), ArXiv API interaction (`arxiv`), and environment variable management (`python-dotenv`). CrewAI uses LiteLLM to connect to various LLMs, including Google Gemini. Ensure you have the necessary API access and keys for the LLM you intend to use.
 
 ## How to Run the Script
 
@@ -37,22 +37,20 @@ These packages provide the core functionalities for the AI agents (`crewai`), Ar
     *(Assuming you will add a `requirements.txt` file later or instruct the user to use the `pip install` command from the Setup Instructions)*
 
 3.  **Set up Environment Variables:**
-    Create a `.env` file in the root directory of the project and add the following environment variables. These are crucial for the script to authenticate with necessary services and configure the AI models.
+    Create a `.env` file in the root directory of the project and add the following environment variables. This is crucial for the script to authenticate with the Google Gemini API.
 
     ```env
-    OPENAI_API_KEY="your_openai_api_key_here"
-    # Specify the OpenAI model you want to use (e.g., gpt-4, gpt-3.5-turbo)
-    OPENAI_MODEL_NAME="gpt-4"
+    GEMINI_API_KEY="your_gemini_api_key_here"
 
     # Optional: If you are using other services that require API keys, add them here.
     # EXAMPLE_OTHER_SERVICE_API_KEY="your_other_service_key"
     ```
-    Replace `"your_openai_api_key_here"` with your actual OpenAI API key.
+    Replace `"your_gemini_api_key_here"` with your actual Google Cloud API key that has access to the Gemini API.
 
 4.  **Run the main script:**
-    *(Assuming the main script is `main.py` or similar. This will need to be adjusted if the entry point script has a different name.)*
+    *(The main script is `app.py`)*
     ```bash
-    python main.py
+    python app.py
     ```
 
 ## Output

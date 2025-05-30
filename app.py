@@ -15,11 +15,12 @@ The script requires environment variables for API keys and model configurations 
 # Load environment variables from .env file
 load_dotenv()
 
-os.environ["OPENAI_MODEL_NAME"] = "gpt-4o-mini"
+# os.environ["OPENAI_MODEL_NAME"] = "gpt-4o-mini" # Commented out for Gemini integration
 
 from typing import Type, List
-from pydantic import BaseModel, Field 
-from crewai.tools import BaseTool 
+from pydantic import BaseModel, Field
+from crewai.tools import BaseTool
+from crewai import Agent, Task, Crew, LLM # Added LLM
 
 import arxiv
 import time
@@ -109,11 +110,12 @@ class FetchArxivPapersTool(BaseTool):
 
 arxiv_search_tool = FetchArxivPapersTool()
 
+# Configure the Gemini LLM
+# Make sure to set the GEMINI_API_KEY environment variable.
+gemini_llm = LLM(model="gemini/gemini-pro")
+
 # Agent 1: ArXiv Researcher
 
-from crewai import Agent
-
-# Defines the Researcher agent responsible for analyzing ArXiv papers.
 researcher = Agent(
     role = "Senior AI Researcher", # The role of the agent
     goal = "Identify and rank the top 10 most significant ArXiv papers published on {date} in specified AI categories. "
@@ -123,6 +125,7 @@ researcher = Agent(
                 "Your expertise spans across various AI subfields including NLP, Computer Vision, Machine Learning, and Robotics.", # Background and expertise of the agent
     verbose = True, # Enables detailed logging of the agent's actions
     tools = [arxiv_search_tool], # List of tools the agent can use
+    llm=gemini_llm  # Added LLM configuration
 )
 
 # Agent 2: Frontend Engineer
@@ -135,11 +138,10 @@ frontend_engineer = Agent(
                 "You have a strong understanding of HTML, CSS, and JavaScript, and you're passionate about making complex information accessible. "
                 "You also have a foundational understanding of AI concepts, allowing you to effectively present research findings.", # Background and expertise of the agent
     verbose = True, # Enables detailed logging of the agent's actions
+    llm=gemini_llm  # Added LLM configuration
 )
 
 # Task for ArXiv Researcher
-
-from crewai import Task
 
 # Defines the research task to be performed by the Researcher agent.
 research_task = Task(
@@ -179,8 +181,7 @@ reporting_task = Task(
     human_input = True, # Indicates that this task may require human input or validation (e.g., reviewing the generated HTML)
 )
 
-from crewai import Crew
-
+# Note: 'from crewai import Crew' is already handled by the import 'from crewai import Agent, Task, Crew, LLM'
 arxiv_research_crew = Crew(
     agents = [researcher, frontend_engineer],
     tasks = [research_task, reporting_task],
